@@ -1,5 +1,6 @@
 # Autonomous Credit Underwriting & Default Risk Scoring Engine
 
+[![Streamlit App](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://loan-approval-prediction-rjg3hwjcykjeyneqvlagcv.streamlit.app/)
 [![Python 3.10+](https://img.shields.io/badge/Python-3.10%2B-blue.svg)](https://www.python.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
