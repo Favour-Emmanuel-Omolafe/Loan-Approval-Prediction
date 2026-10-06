@@ -1,6 +1,10 @@
-import joblib
 import numpy as np
 import pandas as pd
+from sklearn.compose import ColumnTransformer
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.impute import SimpleImputer
+from sklearn.pipeline import Pipeline
+from sklearn.preprocessing import OneHotEncoder, StandardScaler
 import streamlit as st
 
 st.set_page_config(
@@ -15,11 +19,90 @@ st.write(
 
 
 @st.cache_resource
-def load_pipeline():
-  return joblib.load("credit_underwriting_pipeline.pkl")
+def build_and_train_pipeline():
+  # 1. Load empirical training data
+  df = pd.read_csv("LoanApprovalPrediction.csv")
+
+  # 2. Financial Feature Engineering
+  df["Total_Income"] = df["ApplicantIncome"] + df["CoapplicantIncome"]
+  df["Loan_to_Income_Ratio"] = (df["LoanAmount"] * 1000) / (
+      df["Total_Income"] + 1
+  )
+  df["Estimated_EMI"] = (df["LoanAmount"] * 1000) / df[
+      "Loan_Amount_Term"
+  ].replace(0, np.nan)
+  df["Annuity_to_Income_Ratio"] = df["Estimated_EMI"] / (
+      (df["Total_Income"] / 12) + 1
+  )
+  df["Dependents_Clean"] = (
+      df["Dependents"].replace("3+", 3).fillna(0).astype(float)
+  )
+  df["Income_Per_Capita"] = df["Total_Income"] / (df["Dependents_Clean"] + 1)
+
+  numeric_features = [
+      "ApplicantIncome",
+      "CoapplicantIncome",
+      "LoanAmount",
+      "Total_Income",
+      "Loan_to_Income_Ratio",
+      "Estimated_EMI",
+      "Annuity_to_Income_Ratio",
+      "Income_Per_Capita",
+  ]
+
+  categorical_features = [
+      "Gender",
+      "Married",
+      "Education",
+      "Self_Employed",
+      "Property_Area",
+      "Credit_History",
+  ]
+
+  # 3. Transformers
+  numeric_transformer = Pipeline(
+      steps=[
+          ("imputer", SimpleImputer(strategy="median")),
+          ("scaler", StandardScaler()),
+      ]
+  )
+
+  categorical_transformer = Pipeline(
+      steps=[
+          ("imputer", SimpleImputer(strategy="most_frequent")),
+          ("onehot", OneHotEncoder(handle_unknown="ignore")),
+      ]
+  )
+
+  preprocessor = ColumnTransformer(
+      transformers=[
+          ("num", numeric_transformer, numeric_features),
+          ("cat", categorical_transformer, categorical_features),
+      ]
+  )
+
+  pipeline = Pipeline(
+      steps=[
+          ("preprocessor", preprocessor),
+          (
+              "classifier",
+              RandomForestClassifier(
+                  n_estimators=150,
+                  max_depth=6,
+                  class_weight="balanced",
+                  random_state=42,
+              ),
+          ),
+      ]
+  )
+
+  X = df[numeric_features + categorical_features]
+  y = df["Loan_Status"].map({"Y": 1, "N": 0})
+  pipeline.fit(X, y)
+  return pipeline
 
 
-pipeline = load_pipeline()
+pipeline = build_and_train_pipeline()
 
 with st.form("underwriting_form"):
   st.subheader("Applicant & Financial Profile")
@@ -27,16 +110,10 @@ with st.form("underwriting_form"):
 
   with c1:
     applicant_income = st.number_input(
-        "Applicant Monthly Income ($)",
-        min_value=0,
-        value=5000,
-        step=500,
+        "Applicant Monthly Income ($)", min_value=0, value=5000, step=500
     )
     coapplicant_income = st.number_input(
-        "Co-Applicant Monthly Income ($)",
-        min_value=0,
-        value=1500,
-        step=500,
+        "Co-Applicant Monthly Income ($)", min_value=0, value=1500, step=500
     )
     loan_amount = st.number_input(
         "Loan Amount (in Thousands $)", min_value=1, value=120, step=10
