@@ -20,7 +20,7 @@ This project delivers:
 
 ---
 
-## 📊 Key Engineered Financial Indicators
+| **Estimated Annuity (EMI)** | `(LoanAmount * 1000) / Loan_Amount_Term` | Approximates monthly principal amortization obligation. |
 
 Rather than relying on unscaled raw inputs, the pipeline derives domain-specific solvency features prior to ingestion:
 
