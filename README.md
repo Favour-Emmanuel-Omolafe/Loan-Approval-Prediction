@@ -7,9 +7,9 @@
 ---
 
 ## 📌 Executive Summary
-Automated retail credit underwriting requires balancing portfolio expansion against default exposure. In institutional lending, approving a non-performing borrower (**Type I Error / False Positive**) incurs substantial capital write-offs, whereas rejecting a creditworthy borrower (**Type II Error / False Negative**) only incurs the opportunity cost of unrealized interest margin. 
+Automated retail credit underwriting requires balancing portfolio expansion against default exposure. In institutional lending, approving a non-performing borrower (**Type I Error / False Positive**) incurs substantial capital write-offs, whereas rejecting a creditworthy borrower (**Type II Error / False Negative**) only incurs the opportunity cost of unrealised interest margin. 
 
-This repository implements an end-to-end, explainable credit scoring engine designed to assess retail credit risk, optimize classification thresholds against asymmetric lending losses, and serve real-time decisions via an interactive deployment interface.
+This repository implements an end-to-end, explainable credit scoring engine designed to assess retail credit risk, optimise classification thresholds against asymmetric lending losses, and serve real-time decisions via an interactive deployment interface.
 
 ---
 
@@ -29,21 +29,21 @@ Rather than relying on unscaled raw inputs, the pipeline derives domain-specific
 
 ## 📈 Model Performance & Validation
 
-Models were evaluated using **Stratified 5-Fold Cross-Validation** and a held-out test partition (20%). Because credit defaults represent an asymmetric cost, models are benchmarked across **Precision, Recall (Default Class), Macro F1, and ROC-AUC**, rather than naive accuracy:
+Models were evaluated using an 80/20 train/test split stratified across the binary outcome `Loan_Status`. Performance metrics prioritise default detection precision alongside global discrimination power (ROC-AUC):
 
-| Model Architecture | Precision (Default) | Recall (Default) | Macro F1 | ROC-AUC | Primary Limitation / Strength |
-| :--- | :---: | :---: | :---: | :---: | :--- |
-| **Balanced Random Forest (Selected)** | **0.79** | **0.84** | **0.81** | **0.86** | **Optimal boundary separation; balances default detection without excessive collateral churn.** |
-| **Logistic Regression (L2)** | 0.64 | 0.72 | 0.67 | 0.78 | Fast convergence, but assumes linear log-odds across non-linear ratios. |
-| **Support Vector Classifier (RBF)** | 0.60 | 0.66 | 0.62 | 0.73 | Sensitive to feature scales; computationally expensive on sparse matrices. |
-| **K-Nearest Neighbors (k=5)** | 0.54 | 0.58 | 0.56 | 0.66 | Suffers from the curse of dimensionality across mixed categorical/continuous data. |
+| Model Architecture | Accuracy | Precision (Default) | Recall (Default) | Macro F1 | ROC-AUC | Primary Limitation / Strength |
+| :--- | :---: | :---: | :---: | :---: | :---: | :--- |
+| **Balanced Random Forest (Selected)** | **80.83%** | **0.86** | **0.47** | **0.74** | **0.78** | **High precision against bad credit; catches high-risk defaults without false alarms.** |
+| **Logistic Regression (Scaled)** | 81.67% | 0.81 | 0.45 | 0.73 | 0.77 | Fast convergence; assumes linear relationship across engineered ratios. |
+| **Support Vector Classifier (SVC)** | 80.83% | 0.80 | 0.42 | 0.70 | 0.75 | Consistent boundary separation; slower on non-linear kernel transformations. |
+| **K-Nearest Neighbors (k=5)** | 79.17% | 0.65 | 0.40 | 0.65 | 0.71 | Distance metrics degrade across sparse or mixed categorical features. |
 
 > **Decision Threshold Policy:** The scoring engine applies an asymmetric probability threshold. Applicants with approval confidence $\ge$ 60% are automatically cleared, scores between 40% and 59% are flagged for **Manual Underwriter Review**, and scores < 40% are declined to mitigate default exposure.
 
 ---
 
 ## 🔍 Interpretability & Policy Guidance (XAI)
-* **Credit History Primacy:** Historical debt repayment behavior remains the dominant predictor of approval viability.
+* **Credit History Primacy:** Historical debt repayment behaviour remains the dominant predictor of approval viability.
 * **Solvency Buffers:** High loan amounts combined with elevated DTI ratios trigger automated routing for human manual underwriting when falling within borderline probability thresholds (0.40 – 0.55).
 
 ---
@@ -53,20 +53,8 @@ Models were evaluated using **Stratified 5-Fold Cross-Validation** and a held-ou
 ```text
 Loan-Approval-Prediction/
 ├── app.py                              # Streamlit inference dashboard & UI logic
-├── credit_underwriting_pipeline.pkl    # Serialized end-to-end ColumnTransformer + RF Pipeline
+├── credit_underwriting_pipeline.pkl    # Serialized end-to-end model artifact
 ├── LoanApprovalPrediction.csv          # Raw empirical credit records
 ├── Loan_Approval_Prediction.ipynb      # Exploratory data analysis & model development
 ├── requirements.txt                    # Pinned deployment dependencies
 └── README.md                           # System documentation
----
-
-## 🚀 Interactive Deployment
-
-The model is serialized via `joblib` and served through a real-time Streamlit underwriting interface.
-
-### Running Locally:
-```bash
-git clone [https://github.com/Favour-Emmanuel-Omolafe/Loan-Approval-Prediction.git](https://github.com/Favour-Emmanuel-Omolafe/Loan-Approval-Prediction.git)
-cd Loan-Approval-Prediction
-pip install -r requirements.txt
-streamlit run app.py
