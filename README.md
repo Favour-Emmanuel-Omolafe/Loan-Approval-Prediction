@@ -58,3 +58,15 @@ Loan-Approval-Prediction/
 ├── Loan_Approval_Prediction.ipynb      # Exploratory data analysis & model development
 ├── requirements.txt                    # Pinned deployment dependencies
 └── README.md                           # System documentation
+---
+
+## 🚀 Interactive Deployment
+
+The model is serialized via `joblib` and served through a real-time Streamlit underwriting interface.
+
+### Running Locally:
+```bash
+git clone [https://github.com/Favour-Emmanuel-Omolafe/Loan-Approval-Prediction.git](https://github.com/Favour-Emmanuel-Omolafe/Loan-Approval-Prediction.git)
+cd Loan-Approval-Prediction
+pip install -r requirements.txt
+streamlit run app.py
