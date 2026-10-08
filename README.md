@@ -1,26 +1,19 @@
-# Autonomous Credit Underwriting & Default Risk Scoring Engine
+# 🏦 Autonomous Credit Underwriting & Risk Prediction System
 
-[![Streamlit App](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://loan-approval-prediction-rjg3hwjcykjeyneqvlagcv.streamlit.app/)
-[![Python 3.10+](https://img.shields.io/badge/Python-3.10%2B-blue.svg)](https://www.python.org/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-
-An end-to-end retail credit risk modeling and automated underwriting engine. Moving beyond standard academic classification baselines, this project integrates non-linear financial ratio synthesis (debt service burden, household leverage, annuity coverage), leak-free preprocessing encapsulation via scikit-learn `Pipeline`, class-imbalance stabilization, and an interactive real-time decision dashboard deployed on Streamlit Community Cloud.
+[![Python](https://img.shields.io/badge/Python-3.9%2B-blue.svg)](https://www.python.org/)
+[![Scikit-Learn](https://img.shields.io/badge/Library-Scikit--Learn-orange.svg)](https://scikit-learn.org/)
+[![Streamlit](https://img.shields.io/badge/Framework-Streamlit-red.svg)](https://streamlit.io/)
 
 ---
 
 ## 📌 Executive Summary
+Automated retail credit underwriting requires balancing portfolio expansion against default exposure. In institutional lending, approving a non-performing borrower (**Type I Error / False Positive**) incurs substantial capital write-offs, whereas rejecting a creditworthy borrower (**Type II Error / False Negative**) only incurs the opportunity cost of unrealized interest margin. 
 
-Traditional retail lending workflows suffer from manual underwriting latency and inaccurate default appraisals driven by isolated metric evaluations (e.g., assessing raw applicant income without debt-service context). 
-
-This project delivers:
-1. **Domain-Specific Feature Engineering:** Mathematical formulation of solvency, leverage, and amortization ratios to replicate real-world banking credit committees.
-2. **Leak-Free Pipeline Architecture:** Full encapsulation of median/mode imputation, one-hot encoding, and feature scaling inside an integrated `ColumnTransformer` + estimator pipeline, preventing test set contamination.
-3. **Cost-Sensitive Risk Classification:** Implementation of balanced class weighting on ensemble decision trees to penalize False Negatives (unidentified credit defaults), which represent the primary financial risk for lending institutions.
-4. **Interactive Production Deployment:** A production-style inference web application allowing credit officers to evaluate marginal applicants with confidence scores and policy recommendations.
+This repository implements an end-to-end, explainable credit scoring engine designed to assess retail credit risk, optimize classification thresholds against asymmetric lending losses, and serve real-time decisions via an interactive deployment interface.
 
 ---
 
-## 📊 Key Engineered Financial Indicators
+## ⚙️ Feature Engineering & Solvency Architecture
 
 Rather than relying on unscaled raw inputs, the pipeline derives domain-specific solvency features prior to ingestion:
 
@@ -36,7 +29,7 @@ Rather than relying on unscaled raw inputs, the pipeline derives domain-specific
 
 ## 📈 Model Performance & Validation
 
-Models were evaluated using **Stratified 5-Fold Cross-Validation** and a held-out test partition (20%). Because credit defaults represent an asymmetric cost (approving a defaulting borrower incurs significantly greater financial loss than rejecting a marginal performing borrower), models are benchmarked across **Precision, Recall (Default Class), Macro F1, and ROC-AUC**, rather than naive accuracy.
+Models were evaluated using **Stratified 5-Fold Cross-Validation** and a held-out test partition (20%). Because credit defaults represent an asymmetric cost, models are benchmarked across **Precision, Recall (Default Class), Macro F1, and ROC-AUC**, rather than naive accuracy:
 
 | Model Architecture | Precision (Default) | Recall (Default) | Macro F1 | ROC-AUC | Primary Limitation / Strength |
 | :--- | :---: | :---: | :---: | :---: | :--- |
@@ -45,7 +38,13 @@ Models were evaluated using **Stratified 5-Fold Cross-Validation** and a held-ou
 | **Support Vector Classifier (RBF)** | 0.60 | 0.66 | 0.62 | 0.73 | Sensitive to feature scales; computationally expensive on sparse matrices. |
 | **K-Nearest Neighbors (k=5)** | 0.54 | 0.58 | 0.56 | 0.66 | Suffers from the curse of dimensionality across mixed categorical/continuous data. |
 
-> **Decision Threshold Policy:** The scoring engine applies an asymmetric probability threshold. Applicants with approval confidence ≥ 60% are automatically cleared, scores between 40% - 59% are flagged for **Manual Underwriter Review**, and scores < 40% are declined to mitigate default exposure.
+> **Decision Threshold Policy:** The scoring engine applies an asymmetric probability threshold. Applicants with approval confidence $\ge$ 60% are automatically cleared, scores between 40% and 59% are flagged for **Manual Underwriter Review**, and scores < 40% are declined to mitigate default exposure.
+
+---
+
+## 🔍 Interpretability & Policy Guidance (XAI)
+* **Credit History Primacy:** Historical debt repayment behavior remains the dominant predictor of approval viability.
+* **Solvency Buffers:** High loan amounts combined with elevated DTI ratios trigger automated routing for human manual underwriting when falling within borderline probability thresholds (0.40 – 0.55).
 
 ---
 
